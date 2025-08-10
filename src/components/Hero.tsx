@@ -20,11 +20,11 @@ const Hero = () => {
   ]
 
   const squareImages = [
-    "../../public/images/20240610090228_IMG_2642.JPG",
-    "../../public/images/9T9A0036.JPG",
-    "../../public/images/9T9A0047.JPG",
-    "../../public/images/IMG-20250611-WA0051.jpg",
-    "../../public/images/IMG-20250628-WA0028.jpg",
+    "images/20240610090228_IMG_2642.JPG",
+    "images/9T9A0036.JPG",
+    "images/9T9A0047.JPG",
+    "images/IMG-20250611-WA0051.jpg",
+    "images/IMG-20250628-WA0028.jpg",
     "https://plus.unsplash.com/premium_photo-1681841986668-117d7eaab200?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "https://images.unsplash.com/photo-1721562117948-7614b4b7bdad?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "https://images.unsplash.com/photo-1459183885421-5cc683b8dbba?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
