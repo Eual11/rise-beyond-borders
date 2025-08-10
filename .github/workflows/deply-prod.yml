@@ -1,0 +1,12 @@
+name: Deploy to Production
+
+on: [push]
+
+jobs:
+  Deploying-to-Prod:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploying to prod"
+      - run: ls -la
+      - run: |
+         ls ${{github.workspace}} 
