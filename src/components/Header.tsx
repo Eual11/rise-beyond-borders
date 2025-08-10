@@ -33,7 +33,7 @@ const Header = () => {
   return (
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-lg' : 'bg-transparent'
+        isScrolled ? 'backdrop-blur-sm shadow-lg' : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,7 +41,7 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <Globe className="h-8 w-8 text-blue-600" />
+              <img className='h-12' src='/images/logo.png'/>
               <Heart className="h-4 w-4 text-orange-500 absolute -top-1 -right-1" />
             </div>
             <div>

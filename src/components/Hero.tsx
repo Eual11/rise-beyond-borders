@@ -11,7 +11,7 @@ const Hero = () => {
 
   // Grid configuration - Much sparser and bigger
   const GRID_COLS = 10
-  const GRID_ROWS = 5
+  const GRID_ROWS = 6
   const TOTAL_SQUARES = GRID_COLS * GRID_ROWS
 
   // Different reveal patterns
@@ -20,18 +20,15 @@ const Hero = () => {
   ]
 
   const squareImages = [
-    "https://placebear.com/200/200",
-    "https://picsum.photos/200/200?random=1",
-    "https://placebear.com/201/200",
-    "https://picsum.photos/200/201?random=2",
-    "https://placebear.com/202/200",
-    "https://picsum.photos/201/200?random=3",
-    "https://placebear.com/203/200",
-    "https://picsum.photos/200/202?random=4",
-    "https://placebear.com/204/200",
-    "https://picsum.photos/202/200?random=5",
-    "https://placebear.com/205/200",
-    "https://picsum.photos/200/203?random=6"
+    "../../public/images/20240610090228_IMG_2642.JPG",
+    "../../public/images/9T9A0036.JPG",
+    "../../public/images/9T9A0047.JPG",
+    "../../public/images/IMG-20250611-WA0051.jpg",
+    "../../public/images/IMG-20250628-WA0028.jpg",
+    "https://plus.unsplash.com/premium_photo-1681841986668-117d7eaab200?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1721562117948-7614b4b7bdad?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/photo-1459183885421-5cc683b8dbba?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "https://images.unsplash.com/flagged/photo-1555251255-e9a095d6eb9d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
   ]
 
   const heroTexts = [
@@ -88,7 +85,7 @@ const Hero = () => {
       image: squareImages[Math.floor(Math.random() * squareImages.length)],
       row: Math.floor(index / GRID_COLS),
       col: index % GRID_COLS,
-      content: Math.random() > 0.5 ? "image" : "gradient", // 50/50 split
+      content: Math.random() > 0.5 ? "image" : "gradient", // 60/40 split
     }))
   }
 
@@ -305,7 +302,7 @@ const Hero = () => {
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="mb-8 inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full shadow-lg">
-          <span className="text-sm font-medium text-white">🇪🇹 Refugee & Youth-Led Initiative</span>
+          <span className="text-sm font-medium text-white">Refugee & Youth-Led Initiative</span>
         </div>
 
       <div className="backdrop-blur-sm bg-white">
