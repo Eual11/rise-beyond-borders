@@ -7,6 +7,8 @@ import App from "./App";
 import Login from "./components/Login"; 
 import Dashboard from "./components/Dashboard"; 
 import "./index.css"; 
+import AddArtistForm from "./components/AddArtist";
+import AddEventForm from "./components/AddEventFrom";
 // Wrapper for protected routes using the provider
 const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth(); // from provider
@@ -27,10 +29,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<App />} />
           <Route path="/login" element={<Login />} />
 
-          <Route path="/admin" element={<ProtectedRoute />}>
-            <Route index element={<Dashboard />} />
-          </Route>
-
+        <Route path="/admin" element={<ProtectedRoute />}>
+          <Route index element={<Dashboard />} />
+          <Route path="add-artist" element={<AddArtistForm />} /> 
+          <Route path="add-event" element={<AddEventForm />} />
+        </Route>
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
