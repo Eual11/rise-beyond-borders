@@ -35,7 +35,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       {/* overlay content */}
       <div className="ffv-content absolute inset-0 flex w-full justify-center items-end z-10 pointer-events-none pb-8">
-        <div className="ffv-card flex justify-between bg-gradient-to-t w-full from-black/70 to-transparent p-6 rounded-t-xl text-center text-white  w-full">
+        <div className="ffv-card flex justify-between bg-gradient-to-t w-full  to-transparent p-6 rounded-t-xl text-center text-white  w-full">
           <div className="ffv-headline w-full text-3xl font-extrabold tracking-wide">{''}</div>
           <button
             className="ffv-cta bg-white/90 text-black px-6 py-3 rounded-full font-bold hover:bg-white transition-colors pointer-events-auto flex items-center justify-center mx-auto"
