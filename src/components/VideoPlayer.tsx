@@ -15,9 +15,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   videoSrc,
   poster = "",
   caption = "Mon–Fri 🌞🌙 | 24/7 ⚡",
-  mute = true,
-  loop = true,
-  autoplay = true,
+  mute = false,
+  loop = false,
+  autoplay = false,
 }) => {
   const [isMuted, setIsMuted] = useState(mute);
 

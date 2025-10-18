@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Globe, Heart } from 'lucide-react';
 import { Link } from 'react-router'; 
@@ -6,8 +5,8 @@ import { Link } from 'react-router';
 const navItems = [
   { label: 'About', section: 'about',href:"/#about" },
   { label: 'Events', section: 'events', href:"/events" },
-  { label: 'Hub', section: 'hub', href:"/#hub" },
-  { label: 'Impact', section: 'impact', href:"/impact" },
+  { label: 'Hub', section: 'hub', href:"/hub" },
+  { label: 'Gallery', section: 'gallery', href:"/gallery" },
 ];
 
 const Header = () => {
