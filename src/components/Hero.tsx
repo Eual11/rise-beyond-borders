@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { ArrowRight, Sparkles, Users, Heart } from 'lucide-react';
 
@@ -241,6 +240,14 @@ const Hero = () => {
     }
   };
 
+
+  const scrollToStory = () => {
+    const element = document.getElementById('story');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
@@ -331,7 +338,7 @@ const Hero = () => {
             <span>Join Our Movement</span>
             <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </button>
-          <button className="text-gray-700 hover:text-blue-600 transition-colors font-medium text-lg underline decoration-2 underline-offset-4 decoration-blue-300 hover:decoration-blue-600">
+          <button onClick={()=>scrollToStory()} className="text-gray-700 hover:text-blue-600 transition-colors font-medium text-lg underline decoration-2 underline-offset-4 decoration-blue-300 hover:decoration-blue-600">
             Watch Our Story
           </button>
         </div>
@@ -341,11 +348,11 @@ const Hero = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
           <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="text-3xl font-bold text-white mb-2">300+</div>
-            <div className="text-blue-100 font-medium">Youth Impacted</div>
+            <div className="text-blue-100 font-medium">Targeted</div>
           </div>
           <div className="bg-gradient-to-br from-teal-400 to-teal-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="text-3xl font-bold text-white mb-2">3</div>
-            <div className="text-teal-100 font-medium">Program Locations</div>
+            <div className="text-teal-100 font-medium"> Program Locations</div>
           </div>
           <div className="bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="text-3xl font-bold text-white mb-2">100%</div>

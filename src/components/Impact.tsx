@@ -1,9 +1,15 @@
-import React from 'react';
 import { MapPin, Users, Calendar, TrendingUp } from 'lucide-react';
 
 const Impact = () => {
   const locations = [
+
     {
+      name: "Urban Addis Ababa",
+      type: "Hub Location",
+      focus: "Full program suite",
+      participants: "100+ youth"
+    },
+        {
       name: "Dolo Camps",
       type: "Refugee Camp",
       focus: "Art therapy and skills training",
@@ -15,12 +21,7 @@ const Impact = () => {
       focus: "Cultural exchange programs",
       participants: "80+ youth"
     },
-    {
-      name: "Urban Addis Ababa",
-      type: "Hub Location",
-      focus: "Full program suite",
-      participants: "100+ youth"
-    }
+    
   ];
 
   const goals = [
@@ -71,13 +72,13 @@ const Impact = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            Through our pilot program, we're reaching 300+ refugee and host youth across three key locations in Ethiopia.
+            Through our pilot program, we're amiming to reach 300+ refugee and host youth across three key locations in Ethiopia.
           </p>
         </div>
 
         {/* Locations */}
         <div className="mb-16">
-          <h3 className="text-2xl font-bold text-center mb-8 text-gray-900">Program Locations</h3>
+          <h3 className="text-2xl font-bold text-center mb-8 text-gray-900">Planned Program Locations</h3>
           <div className="grid md:grid-cols-3 gap-8">
             {locations.map((location, index) => (
               <div
@@ -130,7 +131,7 @@ const Impact = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-4xl font-bold text-blue-600 mb-2">300+</div>
-              <div className="text-gray-700 font-medium">Youth Reached</div>
+              <div className="text-gray-700 font-medium">Youth To be Reached</div>
               <div className="text-sm text-gray-500 mt-1">Refugee & Host Communities</div>
             </div>
             <div className="text-center">

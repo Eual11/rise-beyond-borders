@@ -110,7 +110,7 @@ const Hub = () => {
             </p>
             <div className="grid sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div>
-                <div className="text-2xl font-bold text-orange-600 mb-2">24/7</div>
+                <div className="text-2xl font-bold text-orange-600 mb-2">Full Week</div>
                 <div className="text-gray-700 font-medium">Safe Space Access</div>
               </div>
               <div>
@@ -118,7 +118,7 @@ const Hub = () => {
                 <div className="text-gray-700 font-medium">Monthly Visitors</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-purple-600 mb-2">50+</div>
+                <div className="text-2xl font-bold text-purple-600 mb-2">5+</div>
                 <div className="text-gray-700 font-medium">Programs per Month</div>
               </div>
             </div>

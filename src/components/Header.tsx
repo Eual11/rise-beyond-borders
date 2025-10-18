@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Globe, Heart } from 'lucide-react';
+import { Link } from 'react-router'; 
 
 const navItems = [
-  { label: 'About', section: 'about' },
-  { label: 'Programs', section: 'programs' },
-  { label: 'Hub', section: 'hub' },
-  { label: 'Impact', section: 'impact' },
+  { label: 'About', section: 'about',href:"/#about" },
+  { label: 'Events', section: 'events', href:"/events" },
+  { label: 'Hub', section: 'hub', href:"/#hub" },
+  { label: 'Impact', section: 'impact', href:"/impact" },
 ];
 
 const Header = () => {
@@ -39,6 +40,8 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
+
+              <Link to="/">
           <div className="flex items-center space-x-3">
             <div className="relative">
               <img className='h-12' src='/images/logo.png'/>
@@ -51,7 +54,7 @@ const Header = () => {
               <p className="text-xs text-gray-600">Youth-Led • Ethiopia</p>
             </div>
           </div>
-
+            </Link>
           {/* Desktop Navigation - expand on hover */}
           <div
             className="hidden md:block"
@@ -69,19 +72,21 @@ const Header = () => {
                 }`}
               >
                 {navItems.map((item, index) => (
-                  <button
-                    key={item.label}
-                    onClick={() => scrollToSection(item.section)}
-                    className={`text-sm font-medium text-gray-700 hover:text-blue-600 transition-all duration-300 whitespace-nowrap hover:scale-105 relative group ${
-                      isHovered ? 'translate-x-0' : 'translate-x-4'
-                    }`}
+                  <span
+
                     style={{
                       transitionDelay: isHovered ? `${index * 50}ms` : '0ms',
                     }}
+
+                    >
+                  <Link
+                    to={item.href}
+                    key={item.label}
                   >
                     {item.label}
                     <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full" />
-                  </button>
+                  </Link>
+                </span>
                 ))}
               </div>
               <button
