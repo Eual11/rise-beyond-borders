@@ -185,7 +185,7 @@ export default function AddArtworkForm() {
               type="text"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="$200"
+              placeholder="200 Br"
               required
             />
           </div>

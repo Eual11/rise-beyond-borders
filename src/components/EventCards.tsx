@@ -1,6 +1,9 @@
 
 import React, { useState, useEffect } from "react";
-import { CalendarDays, Clock3, CircleDot, Users } from "lucide-react";
+import { CalendarDays, Clock3, CircleDot, Users, Trash2, X, Edit } from "lucide-react";
+import { useNavigate } from "react-router"; 
+
+import supabase from "@/utils/supabase";
 
 export interface Event {
   id: string;
@@ -10,7 +13,7 @@ export interface Event {
   description: string;
   tags: string[];
   image?: string;
-  attendees?: number; // optional field
+  attendees?: number;
 }
 
 type Status = "upcoming" | "live" | "past";
@@ -43,14 +46,32 @@ function getTimeString(event: Event, status: Status, now: number): string {
   }
 }
 
-const EventCards: React.FC<{ events: Event[] }> = ({ events }) => {
+interface EventCardsProps {
+    events: Event[];
+    isAuthenticated: boolean;
+    onEditClick: (id: string) => void;
+}
+
+const EventCards: React.FC<EventCardsProps> = ({ events: initialEvents, isAuthenticated, onEditClick }) => {
+  const [events, setEvents] = useState(initialEvents);
   const [filter, setFilter] = useState<FilterType>("all");
   const [search, setSearch] = useState("");
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [clicked, setClicked] = useState<string | null>(null);
+
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const navigate = useNavigate();
+  const ADMIN_EDIT_ROUTE = "/admin/events/edit";
+
   const [attendingCounts, setAttendingCounts] = useState<Record<string, number>>(
-    () => Object.fromEntries(events.map((e) => [e.id, e.attendees ?? Math.floor(Math.random() * 100 + 5)]))
+    () => Object.fromEntries(initialEvents.map((e) => [e.id, e.attendees ?? Math.floor(Math.random() * 100 + 5)]))
   );
+
+  useEffect(() => {
+    setEvents(initialEvents);
+  }, [initialEvents]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(Date.now()), 60000);
@@ -78,18 +99,111 @@ const EventCards: React.FC<{ events: Event[] }> = ({ events }) => {
     past: "text-red-400",
   };
 
-  const handleCountMeIn = (id: string) => {
+  const handleCountMeIn = async (id: string) => {
     setClicked(id);
     setAttendingCounts((prev) => ({
       ...prev,
       [id]: prev[id] + 1,
     }));
-    setTimeout(() => setClicked(null), 700);
+
+    try {
+       const { error } = await supabase.from('events').update({attendees: 88}).eq("id", id)
+       if(error) {
+         throw error
+       }
+    } catch (err) {
+      console.error(err)
+    }
+  };
+  
+  const handleDelete = (event: Event) => {
+    setEventToDelete(event);
+  };
+
+  const handleEdit = (eventId: string) => {
+    navigate(`${ADMIN_EDIT_ROUTE}/${eventId}`);
+  };
+
+  const confirmDelete = async () => {
+    if (!eventToDelete) return;
+    
+    setIsDeleting(true);
+    
+    try {
+         const { error } = await supabase
+             .from('events')
+             .delete()
+             .eq('id', eventToDelete.id);
+            
+         if (error) {
+             console.error("Supabase Deletion Error:", error);
+             alert(`Failed to delete event: ${error.message}`);
+         } else {
+             setEvents(prevEvents => prevEvents.filter(e => e.id !== eventToDelete.id));
+             setAttendingCounts(prevCounts => {
+                 const newCounts = { ...prevCounts };
+                 delete newCounts[eventToDelete.id];
+                 return newCounts;
+             });
+         }
+    } catch (e) {
+        console.error("Supabase API call failed:", e);
+        alert("An unexpected error occurred during deletion.");
+    } finally {
+        setIsDeleting(false);
+        setEventToDelete(null);
+    }
+  };
+
+
+  const DeleteModal = () => {
+    if (!eventToDelete) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl p-8 max-w-lg w-full shadow-2xl relative">
+                <button 
+                    onClick={() => setEventToDelete(null)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+                    disabled={isDeleting}
+                >
+                    <X className="w-6 h-6" />
+                </button>
+                <h3 className="text-xl font-bold text-red-600 mb-4 flex items-center gap-2">
+                    <Trash2 className="w-6 h-6" /> Confirm Deletion
+                </h3>
+                <p className="text-gray-700 mb-6">
+                    Are you sure you want to delete the event: 
+                    <strong className="block mt-1 p-2 bg-red-50 rounded-lg">"{eventToDelete.name}"</strong>
+                    This action <strong>cannot be undone</strong>.
+                </p>
+                <div className="flex justify-end gap-3">
+                    <button
+                        onClick={() => setEventToDelete(null)}
+                        className="px-4 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-100 transition"
+                        disabled={isDeleting}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={confirmDelete}
+                        className={`px-4 py-2 font-semibold text-white rounded-full transition ${
+                            isDeleting ? "bg-red-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 active:scale-98"
+                        }`}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? "Deleting..." : "Delete Permanently"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
   };
 
   return (
     <div className="mx-auto p-6 max-w-7xl space-y-8">
-      {/* Filter + Search Bar */}
+      <DeleteModal />
+      
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <input
           type="text"
@@ -108,8 +222,7 @@ const EventCards: React.FC<{ events: Event[] }> = ({ events }) => {
           <option value="past">Past</option>
         </select>
       </div>
-
-      {/* Event Cards */}
+      
       <div className="flex flex-col space-y-10">
         {filteredEvents.map((event) => {
           const status = getStatus(event, currentTime);
@@ -120,18 +233,16 @@ const EventCards: React.FC<{ events: Event[] }> = ({ events }) => {
               key={event.id}
               className="group flex flex-col md:flex-row bg-white/80 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300"
             >
-              {/* Image Section */}
               {event.image && (
-                <div className="md:w-1/3 w-full overflow-hidden">
+                <div className="md:w-1/3 max-h-64 w-full overflow-hidden">
                   <img
-                    src={event.image}
+                    src={event.image.length > 2 ? event.image : "/images/logo.png"}
                     alt={event.name}
                     className="w-full h-64 md:h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
               )}
 
-              {/* Content Section */}
               <div className="flex-1 p-8 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -143,30 +254,61 @@ const EventCards: React.FC<{ events: Event[] }> = ({ events }) => {
                     </p>
                   </div>
 
-                  <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-2">
-                    {event.name}
-                  </h2>
+                  <div className="flex justify-between items-start">
+                    <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-2 pr-4">
+                      {event.name}
+                    </h2>
+                    
+                    <div className="flex space-x-2">
+                      {isAuthenticated && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(event.id);
+                          }}
+                          className="p-2 text-indigo-500 hover:text-indigo-700 bg-indigo-100 rounded-full transition hover:scale-110 active:scale-95 flex-shrink-0"
+                          title="Edit Event"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                      )}
+                      {
+                      isAuthenticated && 
+                      <button
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(event);
+                          }}
+                          className="p-2 text-red-500 hover:text-red-700 bg-red-100 rounded-full transition hover:scale-110 active:scale-95 flex-shrink-0"
+                          title="Delete Event"
+                      >
+                          <Trash2 className="w-5 h-5" />
+                      </button>
+                     }
+                      
+                   </div>
+                  </div>
+
                   <p className="text-gray-600 mb-4 leading-relaxed">
                     {event.description}
                   </p>
 
                   <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                     <span className="flex items-center gap-1">
-                      <CalendarDays className="w-4 h-4" />{" "}
+                      <CalendarDays className="w-4 h-4" />
                       {new Date(event.startDate).toLocaleDateString()}
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock3 className="w-4 h-4" /> {timeStr}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4 text-emerald-500" />{" "}
+                      <Users className="w-4 h-4 text-emerald-500" />
                       <span className="font-medium text-gray-700">
                         {attendingCounts[event.id]}
                       </span>
                     </span>
                   </div>
 
-                  {/* Tags */}
                   <div className="flex flex-wrap gap-2">
                     {event.tags.map((tag) => (
                       <span
@@ -179,8 +321,7 @@ const EventCards: React.FC<{ events: Event[] }> = ({ events }) => {
                   </div>
                 </div>
 
-                {/* "Count Me In" button */}
-                <div className="mt-6">
+                <div className="hidden mt-6">
                   <button
                     onClick={() => handleCountMeIn(event.id)}
                     className={`relative overflow-hidden px-6 py-2.5 font-semibold text-white rounded-full transition-transform transform active:scale-95 ${
@@ -203,7 +344,6 @@ const EventCards: React.FC<{ events: Event[] }> = ({ events }) => {
         })}
       </div>
 
-      {/* CSS for shimmer animation */}
       <style>
         {`
         @keyframes shimmer {

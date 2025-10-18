@@ -67,13 +67,13 @@ const Dashboard: React.FC = () => {
         <section className="mt-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Quick Actions</h2>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/manage-artists">
+            <Link to="/artists">
               <Button variant="default">Manage Artists</Button>
             </Link>
-            <Link to="/manage-events">
+            <Link to="/events">
               <Button variant="default">Manage Events</Button>
             </Link>
-            <Link to="/view-galleries">
+            <Link to="/gallery">
               <Button variant="default">View All Galleries</Button>
             </Link>
           </div>
@@ -83,7 +83,6 @@ const Dashboard: React.FC = () => {
       {/* Footer */}
       <footer className="bg-white shadow py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
-          &copy; 2024 Art Platform. All rights reserved.
         </div>
       </footer>
     </div>

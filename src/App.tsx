@@ -19,7 +19,7 @@ function App() {
 
       <Hero />
       <About />
-      <FullscreenVideoPlayer caption='Our Story ️️' videoSrc='https://youtu.be/va_d_HxHQgQ'/>
+      <FullscreenVideoPlayer caption='Our Story ️️' videoSrc='https://youtu.be/b21RG0JmA4I?si=TtLVdsyBnV8deqjv'/>
       <Programs />
       <Hub />
       <Impact />

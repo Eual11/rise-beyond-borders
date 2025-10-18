@@ -10,7 +10,13 @@ import "./index.css";
 import AddArtistForm from "./components/AddArtist";
 import AddEventForm from "./components/AddEventFrom";
 import AddGalleryForm from "./components/AddGalleryForm";
-// Wrapper for protected routes using the provider
+import ArtGallery from "./components/ArtGallery";
+import EventsPage from "./components/Events";
+import ArtistsPage from "./components/ArtistsPage";
+import ArtistPage from "./components/Artist";
+import ComingSoon from "./components/ComingSoon";
+import EditArtistForm from "./components/EditArtistForm";
+import EditEventForm from "./components/EditEventForm";
 const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth(); // from provider
 
@@ -28,13 +34,24 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<App />} />
+
+          <Route path="/gallery" element={<ArtGallery />} />
+          <Route path="/events" element={<EventsPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/artists" element={<ArtistsPage />} />
+          <Route path="/artist/:id" element={<ArtistPage />} />
+          <Route path="/hub" element={<ComingSoon />} />
 
         <Route path="/admin" element={<ProtectedRoute />}>
           <Route index element={<Dashboard />} />
           <Route path="add-artist" element={<AddArtistForm />} /> 
           <Route path="add-event" element={<AddEventForm />} />
           <Route path="add-gallery" element={<AddGalleryForm />} />
+
+          
+          <Route path="artists/edit/:id" element={<EditArtistForm />} />
+          <Route path="events/edit/:id" element={<EditEventForm />} />
+
         </Route>
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />

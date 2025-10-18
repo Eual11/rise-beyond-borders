@@ -1,32 +1,43 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import supabase from "@/utils/supabase";
 import ArtistProfile from "./ArtistProfile";
 import { ArtCardProps } from "./ArtGalleryCard";
 import Header from "./Header";
 import Footer from "./Footer";
+import { Loader2 } from "lucide-react"; // For a loading spinner
+import { useParams } from "react-router";
 
-const aminaArtworks: ArtCardProps[] = [
-  {
-    title: "Sunset Dreams",
-    artist: "Amina Yusuf",
-    onSale: true,
-    price: "$200",
-    imageSrc:
-      "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?auto=format&fit=crop&w=800&q=80",
-    artPageUrl: "/art/sunset-dreams",
-  },
-  {
-    title: "Reflections",
-    artist: "Amina Yusuf",
-    onSale: false,
-    imageSrc:
-      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
-    artPageUrl: "/art/reflections",
-  },
-  // ... other artworks
-];
+
+interface ArtistData {
+  id: number;
+  name: string;
+  bio: string;
+  portrait_src: string;
+  background_src?: string;
+  website?: string;
+  email?: string;
+  twitter?: string;
+  linkedin?: string;
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
+}
+
+// Define the structure for social links to be passed to ArtistProfile
+interface SocialLink {
+  platform: string;
+  url: string;
+}
 
 const ArtistPage = () => {
+  const {id} = useParams();
+  const [artist, setArtist] = useState<ArtistData | null>(null);
+  const [artworks, setArtworks] = useState<ArtCardProps[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Helper to place an order (retains original logic)
   const handleOrder = (art: ArtCardProps) => {
     if (art.onSale) {
       alert(`Placing order for "${art.title}" by ${art.artist}`);
@@ -35,29 +46,124 @@ const ArtistPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (!id) {
+      setError("Artist ID not provided in the route.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // 1. Fetch Artist Data
+        const { data: artistData, error: artistError } = await supabase
+          .from("artist")
+          .select("*")
+          .eq("id", id).single();
+
+        if (artistError || !artistData) {
+          throw new Error(artistError?.message || "Artist not found.");
+        }
+        console.log(artistData)
+        setArtist(artistData as ArtistData);
+
+        // 2. Fetch Artworks by Artist ID
+        const { data: artworkData, error: artworkError } = await supabase
+          .from("artworks")
+          .select(`
+            id,
+            title,
+            on_sale,
+            price,
+            img_src,
+            artist_url
+          `)
+          .eq("artist", id);
+
+        if (artworkError) {
+          throw new Error(artworkError.message);
+        }
+
+        const formattedArtworks: ArtCardProps[] = artworkData.map((item: any) => ({
+          title: item.title,
+          artist: artistData.name,
+          onSale: item.on_sale,
+          price: item.on_sale ? `$${item.price}` : undefined,
+          imageSrc: item.img_src,
+          // NOTE: artPageUrl is not a standard ArtCardProps field, but we map to a generic link
+          artPageUrl: item.artPageUrl || `/art/${item.id}`,
+        }));
+
+        setArtworks(formattedArtworks);
+
+      } catch (err: any) {
+        console.error("Fetch error:", err.message);
+        setError(`Failed to load profile: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-[80vh] flex items-center justify-center bg-gray-50">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mr-2" />
+          <p className="text-lg text-gray-700">Loading artist profile...</p>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !artist) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-[80vh] flex flex-col items-center justify-center bg-gray-50 p-8">
+          <h2 className="text-3xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-lg text-gray-700">{error || "Artist data could not be loaded."}</p>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+  
+  // Format social links from the fetched data for the ArtistProfile component
+  const socialLinks: SocialLink[] = [
+    artist.linkedin && { platform: "LinkedIn", url: artist.linkedin },
+    artist.twitter && { platform: "Twitter", url: artist.twitter },
+    artist.instagram && { platform: "Instagram", url: artist.instagram },
+    artist.facebook && { platform: "Facebook", url: artist.facebook },
+    artist.youtube && { platform: "YouTube", url: artist.youtube },
+  ].filter((link): link is SocialLink => !!link);
+
+
   return (
     <>
       <Header />
       <div className="min-h-screen bg-gray-50">
-        {/* Artist Profile with Background */}
+        
         <ArtistProfile
-          name="Amina Yusuf"
-          bio="Amina is a refugee youth artist who explores themes of hope, resilience, and identity through her work. She uses vibrant colors and dynamic forms to convey stories from her community. Born in Somalia and resettled in the United States, Amina's art draws from her personal experiences of displacement and triumph. Her pieces have been exhibited in local galleries and featured in community art programs. Amina is passionate about using art as a tool for social change and empowerment."
-          portraitSrc="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80"
-          artworks={aminaArtworks}
+          name={artist.name}
+          bio={artist.bio}
+          portraitSrc={artist.portrait_src}
+          artworks={artworks}
           onOrder={handleOrder}
-          website="https://aminayusuf.art"
-          contactEmail="amina@artist.com"
-          socialLinks={[
-            { platform: "LinkedIn", url: "https://linkedin.com/in/amina-yusuf" },
-            { platform: "Twitter", url: "https://twitter.com/amina_art" },
-            { platform: "Instagram", url: "https://instagram.com/amina.yusuf.art" },
-            { platform: "Facebook", url: "https://facebook.com/amina.yusuf.artist" },
-          ]}
-          backgroundSrc="https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?auto=format&fit=crop&w=1920&q=80"
+          website={artist.website}
+          contactEmail={artist.email}
+          socialLinks={socialLinks}
+          backgroundSrc={artist.background_src}
         />
 
-        {/* Exhibitions & Achievements */}
+        {/* --- Exhibitions & Achievements (Static for now, could also be fetched) --- */}
         <section className="py-24 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">
@@ -65,13 +171,13 @@ const ArtistPage = () => {
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="bg-gray-50 p-8 rounded-2xl shadow-md">
-                <h3 className="text-2xl font-semibold mb-4">Community Art Expo 2023</h3>
+                <h3 className="text-2xl font-semibold mb-4">Community Art Expo</h3>
                 <p className="text-gray-700">
                   Featured artist at the annual expo, showcasing themes of cultural identity.
                 </p>
               </div>
               <div className="bg-gray-50 p-8 rounded-2xl shadow-md">
-                <h3 className="text-2xl font-semibold mb-4">Youth Resilience Award 2024</h3>
+                <h3 className="text-2xl font-semibold mb-4">Youth Resilience Award</h3>
                 <p className="text-gray-700">
                   Recipient of the award for outstanding contributions to art and community empowerment.
                 </p>
@@ -80,19 +186,23 @@ const ArtistPage = () => {
           </div>
         </section>
 
-        {/* Get in Touch */}
+        {/* --- Get in Touch (Dynamic) --- */}
         <section className="py-24 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-4xl font-bold text-gray-900 mb-8">Get in Touch</h2>
             <p className="text-xl text-gray-700 mb-8">
               Interested in commissioning a piece or collaborating? Reach out!
             </p>
-            <a
-              href="mailto:amina@artist.com"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-full text-lg font-semibold transition-colors duration-300"
-            >
-              Contact Amina
-            </a>
+            {artist.email ? (
+              <a
+                href={`mailto:${artist.email}`}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-full text-lg font-semibold transition-colors duration-300"
+              >
+                Contact {artist.name}
+              </a>
+            ) : (
+              <p className="text-gray-500">Contact information not publicly available.</p>
+            )}
           </div>
         </section>
       </div>

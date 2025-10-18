@@ -3,7 +3,7 @@ import { Menu, X, Globe, Heart } from 'lucide-react';
 import { Link } from 'react-router'; 
 
 const navItems = [
-  { label: 'About', section: 'about',href:"/#about" },
+  { label: 'Artists', section: 'artists',href:"/artists" },
   { label: 'Events', section: 'events', href:"/events" },
   { label: 'Hub', section: 'hub', href:"/hub" },
   { label: 'Gallery', section: 'gallery', href:"/gallery" },
