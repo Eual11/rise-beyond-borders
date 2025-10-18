@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
 
           {/* Artist Gallery Card */}
           <Card asChild>
-            <Link to="/artist-gallery" className="group">
+            <Link to="/admin/add-gallery" className="group">
               <CardHeader className="flex flex-col items-center text-center">
                 <div className="bg-gray-100 p-4 rounded-full mb-4 group-hover:bg-gray-200 transition-colors">
                   <GalleryIcon className="w-12 h-12 text-gray-700" />

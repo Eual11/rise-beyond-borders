@@ -9,6 +9,7 @@ import Dashboard from "./components/Dashboard";
 import "./index.css"; 
 import AddArtistForm from "./components/AddArtist";
 import AddEventForm from "./components/AddEventFrom";
+import AddGalleryForm from "./components/AddGalleryForm";
 // Wrapper for protected routes using the provider
 const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth(); // from provider
@@ -33,6 +34,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route index element={<Dashboard />} />
           <Route path="add-artist" element={<AddArtistForm />} /> 
           <Route path="add-event" element={<AddEventForm />} />
+          <Route path="add-gallery" element={<AddGalleryForm />} />
         </Route>
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
