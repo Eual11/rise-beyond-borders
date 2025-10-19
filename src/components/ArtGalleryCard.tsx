@@ -119,7 +119,10 @@ const ArtCard: React.FC<ArtCardProps> = ({
               </span>
             ) : (
               <span className="bg-gray-200 max-w-[100px] text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">
-                Not for Sale
+                {
+                 
+//                Not for Sale
+              }
               </span>
             )}
 

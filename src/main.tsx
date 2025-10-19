@@ -18,6 +18,7 @@ import ComingSoon from "./components/ComingSoon";
 import EditArtistForm from "./components/EditArtistForm";
 import EditEventForm from "./components/EditEventForm";
 import EditGalleryItemForm from "./components/EditGalleryItemForm";
+import BoardMemberCards from "./components/BoardsPage";
 const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth(); // from provider
 
@@ -38,6 +39,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 
           <Route path="/gallery" element={<ArtGallery />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/members" element={<BoardMemberCards />} />
           <Route path="/login" element={<Login />} />
           <Route path="/artists" element={<ArtistsPage />} />
           <Route path="/artist/:id" element={<ArtistPage />} />

@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 const navItems = [
   { label: 'Artists', section: 'artists',href:"/artists" },
   { label: 'Events', section: 'events', href:"/events" },
+  { label: 'Members', section: 'events', href:"/members" },
   { label: 'Hub', section: 'hub', href:"/hub" },
   { label: 'Gallery', section: 'gallery', href:"/gallery" },
 ];
