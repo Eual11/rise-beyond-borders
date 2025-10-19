@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import supabase from "@/utils/supabase";
 import toast, { Toaster } from "react-hot-toast";
 import { Loader2, Trash2 } from "lucide-react";
+import AdminHeader from "./AdminHeader";
 
 interface GalleryFormData {
   title: string;
@@ -236,7 +237,8 @@ const EditGalleryItemForm: React.FC = () => {
   const isDisabled = loading || uploading || !isFormValid;
 
   return (
-    <>
+    <div>
+      <AdminHeader/>
       <Toaster position="top-center" />
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-2xl flex flex-col gap-6 my-10">
         <h1 className="text-3xl font-extrabold text-center text-gray-900 border-b pb-4 mb-4">
@@ -336,7 +338,7 @@ const EditGalleryItemForm: React.FC = () => {
           {loading ? "Saving Changes..." : uploading ? "Uploading Image..." : "Save Changes"}
         </Button>
       </form>
-    </>
+    </div>
   );
 };
 

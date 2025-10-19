@@ -83,9 +83,11 @@ const ArtistsPage: React.FC = () => {
     fetchArtists();
   }, []);
 
-  const renderSocialLink = (url: string | undefined, Icon: React.ElementType, name: string) => {
+  const renderSocialLink = (url: string | undefined, Icon: React.ElementType, name: string, isMail:boolean=false) => {
     if (!url) return null;
     const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+    if(isMail) {
+      return    }
 
     return (
       <a
@@ -241,7 +243,7 @@ const ArtistsPage: React.FC = () => {
                     {/* Social Icons */}
                     <div className="flex flex-wrap gap-0 mb-2">
                       {renderSocialLink(artist.website, Link, "Website")}
-                      {renderSocialLink(artist.email ? `mailto:${artist.email}` : undefined, Mail, "Email")}
+                      {renderSocialLink(artist.email ? `mailto:${artist.email}` : undefined, Mail, "Email", true)}
                       {renderSocialLink(artist.instagram, Instagram, "Instagram")}
                       {renderSocialLink(artist.twitter, Twitter, "Twitter")}
                       {renderSocialLink(artist.linkedin, Linkedin, "LinkedIn")}

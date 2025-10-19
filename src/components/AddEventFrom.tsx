@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import AdminHeader from "./AdminHeader";
 
 
 
@@ -221,6 +222,7 @@ export default function AddEventForm() {
   
   return (
     <>
+      <AdminHeader/>
       <Toaster position="top-right" />
       <form onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto p-8 bg-white rounded-xl shadow-2xl">
         <h2 className="text-3xl font-extrabold text-center text-gray-900 border-b pb-4">Add New Event</h2>

@@ -67,7 +67,6 @@ const ArtistPage = () => {
         if (artistError || !artistData) {
           throw new Error(artistError?.message || "Artist not found.");
         }
-        console.log(artistData)
         setArtist(artistData as ArtistData);
 
         // 2. Fetch Artworks by Artist ID
@@ -112,6 +111,8 @@ const ArtistPage = () => {
           artistFacebook: item.artist?.facebook,
           artistYoutube: item.artist?.youtube,          
         }));
+
+        
 
         setArtworks(formattedArtworks);
 

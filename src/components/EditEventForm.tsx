@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import supabase from "@/utils/supabase";
 import toast, { Toaster } from "react-hot-toast";
 import { Loader2, Trash2 } from "lucide-react";
+import AdminHeader from "./AdminHeader";
 
 interface EventFormData {
   name: string;
@@ -245,6 +246,7 @@ const EditEventForm: React.FC = () => {
 
   return (
     <>
+      <AdminHeader/>
       <Toaster position="top-center" />
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-2xl flex flex-col gap-6 my-10">
         <h1 className="text-3xl font-extrabold text-center text-gray-900 border-b pb-4 mb-4">

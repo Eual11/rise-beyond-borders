@@ -11,6 +11,7 @@ import {
   CommandEmpty,
 } from "@/components/ui/command";
 import toast, { Toaster } from "react-hot-toast";
+import AdminHeader from "./AdminHeader";
 
 interface Artist {
   id: string;
@@ -128,6 +129,7 @@ export default function AddArtworkForm() {
 
   return (
     <>
+      <AdminHeader/>
       <Toaster position="top-right" />
       <form
         onSubmit={handleSubmit}

@@ -5,18 +5,13 @@ import { Link } from "react-router";
 import { Users, Calendar, Image as GalleryIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import AdminHeader from "./AdminHeader";
 
 const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Art Platform Dashboard</h1>
-          <p className="text-gray-600 mt-1">Manage artists, events, and galleries</p>
-        </div>
-      </header>
-
+      <AdminHeader/>
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -67,6 +62,9 @@ const Dashboard: React.FC = () => {
         <section className="mt-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Quick Actions</h2>
           <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/">
+              <Button variant="default">Home</Button>
+            </Link>
             <Link to="/artists">
               <Button variant="default">Manage Artists</Button>
             </Link>
@@ -76,6 +74,7 @@ const Dashboard: React.FC = () => {
             <Link to="/gallery">
               <Button variant="default">View All Galleries</Button>
             </Link>
+          
           </div>
         </section>
       </main>
