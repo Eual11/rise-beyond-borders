@@ -133,13 +133,19 @@ const ArtCard: React.FC<ArtCardProps> = ({
                   <Trash2 className="h-5 w-5" />
                 </button>
               )}
+              {
+              
+(artistWebsite || artistEmail || artistInstagram || artistTwitter || artistLinkedin || artistFacebook || artistYoutube) &&
 
-              <button
+           <button
                 onClick={openContactModal}
                 className="bg-gray-800 text-white text-xs font-semibold px-3 py-1 rounded-full hover:bg-gray-700 transition-colors"
               >
                 Show Artist
               </button>
+
+ }
+   
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
-import { CalendarDays, Clock3, CircleDot, Users, Trash2, X, Edit } from "lucide-react";
+import { CalendarDays, Clock3, CircleDot, Users, Trash2, X, Edit, MapPin,Link as Link2 } from "lucide-react";
+import { Link } from "react-router"; 
 import { useNavigate } from "react-router"; 
 
 import supabase from "@/utils/supabase";
@@ -10,6 +11,8 @@ export interface Event {
   name: string;
   startDate: string;
   endDate?: string;
+  link:string;
+  location:string;
   description: string;
   tags: string[];
   image?: string;
@@ -18,6 +21,17 @@ export interface Event {
 
 type Status = "upcoming" | "live" | "past";
 type FilterType = "all" | "upcoming" | "past";
+
+
+const getSafeLink = (url: string | undefined): string => {
+  if (!url) return "#";
+    let formattedUrl = url.trim();
+    // If it exists and doesn't start with http or https, prepend https://
+  if (formattedUrl && !/^https?:\/\//i.test(formattedUrl)) {
+    formattedUrl = `https://${formattedUrl}`;
+  }
+  return formattedUrl;
+};
 
 function getStatus(event: Event, now: number): Status {
   const start = new Date(event.startDate).getTime();
@@ -234,7 +248,7 @@ const EventCards: React.FC<EventCardsProps> = ({ events: initialEvents, isAuthen
               className="group flex flex-col md:flex-row bg-white/80 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300"
             >
               {event.image && (
-                <div className="md:w-1/3 max-h-64 w-full overflow-hidden">
+                <div className="md:w-1/3 max-h-72 w-full overflow-hidden">
                   <img
                     src={event.image.length > 2 ? event.image : "/images/logo.png"}
                     alt={event.name}
@@ -306,6 +320,16 @@ const EventCards: React.FC<EventCardsProps> = ({ events: initialEvents, isAuthen
                       <span className="font-medium text-gray-700">
                         {attendingCounts[event.id]}
                       </span>
+                    </span>
+                  </div>
+
+                   <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {event.location}
+                    </span>
+                    <span className="flex items-center gap-1">
+                     Link:  <a href={`${getSafeLink(event.link)}`} rel="noopener noreferrer" target="_blank"> <Link2 className="w-4 text-blue-600 h-4" /></a>
                     </span>
                   </div>
 

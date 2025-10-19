@@ -67,6 +67,7 @@ const ArtGallery: React.FC = () => {
         `
       );
 
+
       if (error) {
         console.error("Error fetching artworks:", error.message);
         setLoading(false);
@@ -79,7 +80,7 @@ const ArtGallery: React.FC = () => {
           title: item.title,
           artist: item.artist?.name || "Unknown Artist",
           onSale: item.on_sale,
-          price: item.on_sale ? `$${item.price}` : undefined,
+          price: item.on_sale ? `${item.price} Br` : undefined,
           imageSrc: item.img_src,
           artistUrl: `/artist/${item.artist_url}`,
           artistWebsite: item.artist?.website,
@@ -90,6 +91,7 @@ const ArtGallery: React.FC = () => {
           artistFacebook: item.artist?.facebook,
           artistYoutube: item.artist?.youtube,
         }));
+
 
         setArtPieces(formatted);
       }

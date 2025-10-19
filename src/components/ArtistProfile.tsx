@@ -32,6 +32,18 @@ const iconMap: { [key: string]: React.ComponentType<{ size?: number }> } = {
   default: Link,
 };
 
+
+const getSafeLink = (url: string | undefined): string => {
+  if (!url) return "#";
+    let formattedUrl = url.trim();
+    // If it exists and doesn't start with http or https, prepend https://
+  if (formattedUrl && !/^https?:\/\//i.test(formattedUrl)) {
+    formattedUrl = `https://${formattedUrl}`;
+  }
+  return formattedUrl;
+};
+
+
 const ArtistProfile: React.FC<ArtistProfileProps> = ({
   name,
   bio,
@@ -61,7 +73,7 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
               {website && (
                 <a
-                  href={website}
+                  href={getSafeLink(website)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-full transition-colors duration-300 font-medium"
@@ -85,7 +97,7 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({
                 return (
                   <a
                     key={index}
-                    href={link.url}
+                    href={getSafeLink(link.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-full transition-colors duration-300 font-medium"

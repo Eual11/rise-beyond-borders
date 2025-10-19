@@ -80,6 +80,16 @@ const ArtistPage = () => {
             price,
             img_src,
             artist_url
+          artist:artist( 
+            name, 
+            website, 
+            email, 
+            instagram, 
+            twitter, 
+            linkedin, 
+            facebook, 
+            youtube 
+          )
           `)
           .eq("artist", id);
 
@@ -91,10 +101,16 @@ const ArtistPage = () => {
           title: item.title,
           artist: artistData.name,
           onSale: item.on_sale,
-          price: item.on_sale ? `$${item.price}` : undefined,
+          price: item.on_sale ? `${item.price} Br` : undefined,
           imageSrc: item.img_src,
-          // NOTE: artPageUrl is not a standard ArtCardProps field, but we map to a generic link
           artPageUrl: item.artPageUrl || `/art/${item.id}`,
+          artistWebsite: item.artist?.website,
+          artistEmail: item.artist?.email,
+          artistInstagram: item.artist?.instagram,
+          artistTwitter: item.artist?.twitter,
+          artistLinkedin: item.artist?.linkedin,
+          artistFacebook: item.artist?.facebook,
+          artistYoutube: item.artist?.youtube,          
         }));
 
         setArtworks(formattedArtworks);
@@ -164,7 +180,7 @@ const ArtistPage = () => {
         />
 
         {/* --- Exhibitions & Achievements (Static for now, could also be fetched) --- */}
-        <section className="py-24 bg-white">
+        <section className=" hidden py-24 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">
               Exhibitions & Achievements

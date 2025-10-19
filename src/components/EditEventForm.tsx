@@ -11,20 +11,23 @@ import { Loader2, Trash2 } from "lucide-react";
 interface EventFormData {
   name: string;
   description: string;
-  startDate: string; // YYYY-MM-DD
-  startTime: string; // HH:MM
-  endDate: string; // YYYY-MM-DD
-  endTime: string; // HH:MM
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
   link: string;
+  location: string;
 }
 
 interface FetchedEventData {
   id: number;
   name: string;
   description: string;
-  start_date: string; // Full ISO timestamp from DB
-  end_date: string; // Full ISO timestamp from DB
+  start_date: string;
+  end_date: string;
   img_src: string;
+  location: string;
+  link: string;
 }
 
 const MAX_DESC_LENGTH = 1000;
@@ -44,7 +47,6 @@ const EditEventForm: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Fetch Event Data
   useEffect(() => {
     if (eventId === null || isNaN(eventId)) {
       setError("Invalid Event ID provided.");
@@ -58,7 +60,7 @@ const EditEventForm: React.FC = () => {
       try {
         const { data, error: fetchError } = await supabase
           .from("events")
-          .select("id, name, description, start_date, end_date, img_src")
+          .select("id, name, description, start_date, end_date, img_src, location, link")
           .eq("id", eventId)
           .single();
 
@@ -68,13 +70,10 @@ const EditEventForm: React.FC = () => {
 
         const fetchedEvent = data as FetchedEventData;
 
-        // --- Start Date/Time Processing ---
         const startDateTime = new Date(fetchedEvent.start_date);
-        const startDatePart = startDateTime.toISOString().split('T')[0]; // YYYY-MM-DD
-        const startTimePart = startDateTime.toTimeString().substring(0, 5); // HH:MM
+        const startDatePart = startDateTime.toISOString().split('T')[0];
+        const startTimePart = startDateTime.toTimeString().substring(0, 5);
 
-        // --- End Date/Time Processing ---
-        // Fallback to start_date if end_date is null/invalid, otherwise process it
         const endDateTime = fetchedEvent.end_date ? new Date(fetchedEvent.end_date) : startDateTime;
         const endDatePart = endDateTime.toISOString().split('T')[0];
         const endTimePart = endDateTime.toTimeString().substring(0, 5);
@@ -86,6 +85,8 @@ const EditEventForm: React.FC = () => {
           startTime: startTimePart,
           endDate: endDatePart,
           endTime: endTimePart,
+          link: fetchedEvent.link || "",
+          location: fetchedEvent.location || "",
         };
 
         setInitialData(fetchedEvent);
@@ -102,7 +103,6 @@ const EditEventForm: React.FC = () => {
     fetchEvent();
   }, [eventId]);
 
-  // Clean up image preview URL
   useEffect(() => {
     return () => {
       if (imagePreviewUrl) {
@@ -111,7 +111,6 @@ const EditEventForm: React.FC = () => {
     };
   }, [imagePreviewUrl]);
 
-  // 2. Handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (!formData) return;
@@ -145,7 +144,6 @@ const EditEventForm: React.FC = () => {
     toast.success("Event image marked for removal upon save.");
   };
 
-  // 3. Supabase Upload Logic
   const uploadImage = async (fileToUpload: File): Promise<string | null> => {
     setUploading(true);
     const fileExtension = fileToUpload.name.split('.').pop();
@@ -168,7 +166,6 @@ const EditEventForm: React.FC = () => {
     return publicUrl;
   };
 
-  // 4. Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData || !initialData || eventId === null) return;
@@ -186,22 +183,21 @@ const EditEventForm: React.FC = () => {
         }
       }
 
-      // Reconstruct ISO timestamps from date and time parts
-      // Note: Appending 'Z' assumes the time entered by the user is UTC time.
-      // If the time is local, you should adjust the logic here.
       const startIso = `${formData.startDate}T${formData.startTime}:00Z`;
       const endIso = `${formData.endDate}T${formData.endTime}:00Z`;
       
       const eventDataToUpdate = {
         name: formData.name,
         description: formData.description,
-        start_date: startIso, // New
-        end_date: endIso,     // New
+        start_date: startIso,
+        end_date: endIso,
+        location: formData.location,
+        link: formData.link,
         img_src: finalImageUrl || "",
       };
 
       const { error } = await supabase
-        .from("events") // Table is 'events' not 'event'
+        .from("events")
         .update(eventDataToUpdate)
         .eq('id', eventId);
 
@@ -209,7 +205,6 @@ const EditEventForm: React.FC = () => {
 
       toast.success("Event updated successfully!");
 
-      // Update initialData and reset file state
       setInitialData({ ...initialData, ...eventDataToUpdate, id: initialData.id });
       setExistingImageUrl(eventDataToUpdate.img_src);
       setFile(null);
@@ -226,7 +221,6 @@ const EditEventForm: React.FC = () => {
     }
   };
 
-  // 5. Render Logic
   if (loading || !formData) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -245,7 +239,7 @@ const EditEventForm: React.FC = () => {
     );
   }
 
-  const isFormValid = formData.name.trim() && formData.startDate.trim() ;
+  const isFormValid = formData.name.trim() && formData.startDate.trim() && formData.location.trim();
   const isDisabled = loading || uploading || !isFormValid;
   const charsRemaining = MAX_DESC_LENGTH - formData.description.length;
 
@@ -257,14 +251,16 @@ const EditEventForm: React.FC = () => {
           Edit Event: {initialData?.name}
         </h1>
 
-        {/* Core Info */}
         <div>
           <Label htmlFor="name">Event name *</Label>
           <Input name="name" id="name" value={formData.name} onChange={handleChange} placeholder="Event Name" required />
         </div>
         
+        <div>
+          <Label htmlFor="location">Location *</Label>
+          <Input name="location" id="location" value={formData.location} onChange={handleChange} placeholder="Venue Name" required />
+        </div>
 
-        {/* Start Date and Time */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-lg bg-indigo-50/50">
           <div>
             <Label htmlFor="startDate" className="font-semibold text-indigo-800">Start Date *</Label>
@@ -276,7 +272,6 @@ const EditEventForm: React.FC = () => {
           </div>
         </div>
 
-        {/* End Date and Time */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-lg bg-green-50/50">
           <div>
             <Label htmlFor="endDate" className="font-semibold text-green-800">End Date</Label>
@@ -288,7 +283,6 @@ const EditEventForm: React.FC = () => {
           </div>
         </div>
         
-        {/* Description */}
         <div>
           <Label htmlFor="description">Description</Label>
           <Textarea
@@ -305,13 +299,11 @@ const EditEventForm: React.FC = () => {
           </p>
         </div>
 
-        {/* Link */}
         <div>
           <Label htmlFor="link">Registration/Ticket Link</Label>
           <Input name="link" id="link" value={formData.link} onChange={handleChange} placeholder="https://buytickets.com/event" />
         </div>
 
-        {/* Image Upload Field (reused logic from ArtistForm) */}
         <div className="border p-4 rounded-lg bg-gray-50">
           <Label htmlFor="image_file" className="text-lg font-semibold mb-2 block">Event Poster/Image</Label>
 

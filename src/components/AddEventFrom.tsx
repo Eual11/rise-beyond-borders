@@ -5,25 +5,31 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import toast, { Toaster } from "react-hot-toast";
-import { format, isBefore } from "date-fns"; // Import isBefore for better date validation
+import { format, isBefore } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
-// Helper to safely format a Date object into the ISO-like string required by Postgres datetime-local inputs
+
 
 const formatToSupabaseDateTime = (date: Date | undefined, time: string): string => {
   if (!date) return "";
 
   const datePart = format(date, "yyyy-MM-dd");
-  // Combine with time and append Ethiopia timezone offset (+03:00)
   return `${datePart}T${time}+03:00`;
 };
+
+const MAX_DESC_LENGTH = 1000;
+
 export default function AddEventForm() {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  
+  const [location, setLocation] = useState("");
+  const [link, setLink] = useState("");
 
   const [startDateObj, setStartDateObj] = useState<Date | undefined>(undefined);
   const [startTime, setStartTime] = useState("09:00");
@@ -33,14 +39,11 @@ export default function AddEventForm() {
   const [tags, setTags] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [attendees, setAttendees] = useState<number>(0);
+  const [attendees, setAttendees] = useState<number | string>("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  // --- Date Logic ---
-
-  // 1. Set End Date to Start Date if Start Date is set and End Date is empty
   useEffect(() => {
     if (startDateObj && !endDateObj) {
       setEndDateObj(startDateObj);
@@ -49,8 +52,6 @@ export default function AddEventForm() {
       }
     }
   }, [startDateObj, endDateObj, startTime, endTime]);
-
-  // --- File/Image Logic ---
 
   useEffect(() => {
     return () => {
@@ -94,8 +95,6 @@ export default function AddEventForm() {
     return data.publicUrl;
   };
 
-  // --- Submission Handler ---
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -106,19 +105,24 @@ export default function AddEventForm() {
       setLoading(false);
       return;
     }
+    if (!name.trim() || !location.trim()) {
+      toast.error("Event Name and Location are required.");
+      setLoading(false);
+      return;
+    }
 
-    // Basic validation: End Date must not be before Start Date
-    if (isBefore(endDateObj, startDateObj)) {
-        toast.error("End Date cannot be before the Start Date.");
+    const startDateTimeForValidation = new Date(`${format(startDateObj, 'yyyy-MM-dd')}T${startTime}:00`);
+    const endDateTimeForValidation = new Date(`${format(endDateObj, 'yyyy-MM-dd')}T${endTime}:00`);
+    
+    if (isBefore(endDateTimeForValidation, startDateTimeForValidation)) {
+        toast.error("End Date/Time cannot be before the Start Date/Time.");
         setLoading(false);
         return;
     }
 
-    // Format dates for Supabase insertion
     const finalStartDate = formatToSupabaseDateTime(startDateObj, startTime);
     const finalEndDate = formatToSupabaseDateTime(endDateObj, endTime);
 
-    // Image Upload
     let finalImgSrc = "";
     if (file) {
       const uploadedUrl = await uploadFile();
@@ -128,35 +132,35 @@ export default function AddEventForm() {
       }
       finalImgSrc = uploadedUrl;
     }
+    
+    const numericAttendees = typeof attendees === 'number' ? attendees : (parseInt(attendees as string) || 0);
 
-    const { data, error } = await supabase.from("events").insert({
+    const { error } = await supabase.from("events").insert({
       name,
       description,
       start_date: finalStartDate,
       end_date: finalEndDate,
+      location,
+      link,
       tags: tags.split(",").map((t) => t.trim()).filter(t => t),
       img_src: finalImgSrc,
-      attendees,
+      attendees: numericAttendees,
     });
 
     if (error) {
       setError(error.message);
-      toast.error(error.message);
+      toast.error(`Error adding event: ${error.message}`);
     } else {
-      // Reset form fields
       setName(""); setDescription(""); setStartDateObj(undefined); setStartTime("09:00");
-      setEndDateObj(undefined); setEndTime("17:00"); setTags("");
-      setFile(null); setImagePreviewUrl(null); setAttendees(0);
-      toast.success("Event added successfully!");
+      setEndDateObj(undefined); setEndTime("17:00"); setTags(""); setLocation(""); setLink("");
+      setFile(null); setImagePreviewUrl(null); setAttendees("");
+      toast.success("Event added successfully! 🎉");
     }
 
     setLoading(false);
   };
 
-  // --- Render ---
-
-  // Custom Calendar Picker Component (for re-use)
-  const DatePicker = ({ date, setDate, id, label, time, setTime, minDate }: {
+  const DatePicker = ({ date, setDate, id, label, time, setTime, minDate, colorClass }: {
     date: Date | undefined;
     setDate: (date: Date | undefined) => void;
     id: string;
@@ -164,10 +168,13 @@ export default function AddEventForm() {
     time: string;
     setTime: (time: string) => void;
     minDate?: Date;
+    colorClass: string;
   }) => (
-    <div className="flex flex-col gap-1">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="flex gap-2">
+    <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-lg ${colorClass}`}>
+      <div className="flex flex-col gap-1">
+        <Label htmlFor={id} className="font-semibold">
+            {label} Date *
+        </Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -182,112 +189,141 @@ export default function AddEventForm() {
               {date ? format(date, "PPP") : <span>Pick a date</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 min-w-[280px]" align="start"> 
+          <PopoverContent className="w-auto p-0 min-w-[280px]" align="start">
             <Calendar
               className="w-full"
               mode="single"
               selected={date}
               onSelect={setDate}
               initialFocus
-              // Disable dates that are before the optional minimum date provided
               disabled={(d) => minDate && isBefore(d, minDate)}
             />
           </PopoverContent>
         </Popover>
+      </div>
+      <div className="flex flex-col gap-1">
+        <Label htmlFor={`${id}-time`} className="font-semibold">
+            {label} Time
+        </Label>
         <Input
           type="time"
+          id={`${id}-time`}
           value={time}
           onChange={(e) => setTime(e.target.value)}
-          className="w-1/3"
           required
         />
       </div>
     </div>
   );
 
+  const charsRemaining = MAX_DESC_LENGTH - description.length;
+  const isDisabled = loading || uploadingImage || !name.trim() || !location.trim() || !startDateObj || !endDateObj;
+  
   return (
     <>
       <Toaster position="top-right" />
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-6 bg-white rounded-xl shadow-md">
-        <h2 className="text-2xl font-bold text-center">Add New Event</h2>
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto p-8 bg-white rounded-xl shadow-2xl">
+        <h2 className="text-3xl font-extrabold text-center text-gray-900 border-b pb-4">Add New Event</h2>
 
         <div>
-          <Label htmlFor="eventName">Event Name</Label>
+          <Label htmlFor="eventName">Event Name *</Label>
           <Input id="eventName" placeholder="Event Name" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
-
-        {/* Description Field */}
+        
         <div>
-          <Label htmlFor="description">Description</Label>
-          <textarea
-            id="description"
-            placeholder="A brief description of the event..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px]"
-            rows={4}
-            required
-          />
+          <Label htmlFor="location">Location *</Label>
+          <Input id="location" placeholder="Venue Name / City" value={location} onChange={(e) => setLocation(e.target.value)} required />
         </div>
 
-        {/* Start Date & Time */}
         <DatePicker
           id="startDate"
-          label="Start Date & Time"
+          label="Start"
           date={startDateObj}
           setDate={setStartDateObj}
           time={startTime}
           setTime={setStartTime}
-          // The start date must be today or in the future
+          colorClass="bg-indigo-50/50"
           minDate={new Date(new Date().setHours(0, 0, 0, 0))}
         />
 
-        {/* End Date & Time */}
         <DatePicker
           id="endDate"
-          label="End Date & Time"
+          label="End"
           date={endDateObj}
           setDate={setEndDateObj}
           time={endTime}
           setTime={setEndTime}
-          // Min date for end date is the start date
-          minDate={startDateObj} 
+          colorClass="bg-green-50/50"
+          minDate={startDateObj}
         />
+
+        <div>
+          <Label htmlFor="description">Description *</Label>
+          <Textarea
+            id="description"
+            placeholder="A detailed description of the event..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={5}
+            maxLength={MAX_DESC_LENGTH}
+            required
+          />
+          <p className={`text-sm mt-1 text-right ${charsRemaining <= 50 ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+             {description.length} / {MAX_DESC_LENGTH} characters
+          </p>
+        </div>
+        
+        <div>
+          <Label htmlFor="link">Registration/Ticket Link</Label>
+          <Input id="link" placeholder="https://buytickets.com/event" value={link} onChange={(e) => setLink(e.target.value)} />
+        </div>
 
         <div>
           <Label htmlFor="tags">Tags (comma separated)</Label>
           <Input id="tags" placeholder="e.g., workshop, art, community" value={tags} onChange={(e) => setTags(e.target.value)} />
         </div>
 
-        {/* Image Upload Field */}
+        <div className="border p-4 rounded-lg bg-gray-50">
+            <Label htmlFor="eventImage" className="text-lg font-semibold mb-2 block">Event Poster/Image</Label>
+            <Input
+              id="eventImage"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+            {uploadingImage && <p className="text-blue-500 mt-2 flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin"/> Uploading image...</p>}
+            {imagePreviewUrl && (
+              <div className="mt-4 border rounded-md overflow-hidden shadow-sm max-w-sm">
+                <img
+                  src={imagePreviewUrl}
+                  alt="Image Preview"
+                  className="w-full h-48 object-cover"
+                />
+                <p className="text-xs text-blue-500 p-2">New Image Preview (Will be uploaded on save)</p>
+              </div>
+            )}
+        </div>
+
         <div>
-          <Label htmlFor="eventImage">Event Image</Label>
-          <Input
-            id="eventImage"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
+          <Label htmlFor="attendees">Estimated Attendees</Label>
+          <Input 
+            id="attendees" 
+            type="number" 
+            placeholder="0" 
+            min="0"
+            value={attendees} 
+            onChange={(e) => setAttendees(e.target.value)} 
           />
-          {uploadingImage && <p className="text-gray-600 mt-1">Uploading image...</p>}
-          {imagePreviewUrl && (
-            <div className="mt-4 border rounded-md overflow-hidden">
-              <img
-                src={imagePreviewUrl}
-                alt="Image Preview"
-                className="w-full h-48 object-cover"
-              />
-            </div>
-          )}
         </div>
 
-        <div>
-          <Label htmlFor="attendees">Attendees</Label>
-          <Input id="attendees" type="number" placeholder="0" value={attendees} onChange={(e) => setAttendees(Number(e.target.value))} />
-        </div>
-
-        {error && <p className="text-red-500">{error}</p>}
-        <Button type="submit" disabled={loading || uploadingImage || !startDateObj || !endDateObj || !description.trim() || !name.trim()}>
-          {loading ? "Adding..." : uploadingImage ? "Uploading Image..." : "Add Event"}
+        {error && <p className="text-red-500 text-center font-medium">{error}</p>}
+        
+        <Button 
+          type="submit" 
+          className="w-full py-3 text-lg" 
+          disabled={isDisabled}
+        >
+          {loading ? "Adding Event..." : uploadingImage ? "Uploading Image..." : "Add Event"}
         </Button>
       </form>
     </>

@@ -43,6 +43,8 @@ const EventsPage: React.FC = () => {
             start_date,
             end_date,
             tags,
+            link,
+            location,
             img_src,
             attendees,
             description
@@ -79,6 +81,8 @@ const EventsPage: React.FC = () => {
             endDate: item.end_date,
             tags: parsedTags.filter(t => typeof t === 'string' && t.trim() !== ''),
             image: item.img_src || "",
+            link: item.link,
+            location: item.location,
             attendees: item.attendees,
             description: item.description,
           };

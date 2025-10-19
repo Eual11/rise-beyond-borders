@@ -17,6 +17,7 @@ import ArtistPage from "./components/Artist";
 import ComingSoon from "./components/ComingSoon";
 import EditArtistForm from "./components/EditArtistForm";
 import EditEventForm from "./components/EditEventForm";
+import EditGalleryItemForm from "./components/EditGalleryItemForm";
 const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth(); // from provider
 
@@ -51,6 +52,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           
           <Route path="artists/edit/:id" element={<EditArtistForm />} />
           <Route path="events/edit/:id" element={<EditEventForm />} />
+          <Route path="gallery/edit/:id" element={<EditGalleryItemForm />} />
 
         </Route>
           {/* Catch-all */}
