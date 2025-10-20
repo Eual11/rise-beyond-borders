@@ -1,345 +1,294 @@
+
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import supabase from "@/utils/supabase";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import supabase from "@/utils/supabase";
+import { useNavigate, useParams } from "react-router";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+} from "@/components/ui/command";
 import toast, { Toaster } from "react-hot-toast";
-import { Loader2, Trash2 } from "lucide-react";
 import AdminHeader from "./AdminHeader";
 
-interface GalleryFormData {
-  title: string;
-  artist_id: number | null; // Nullable to handle artists not being loaded yet
-  description: string;
+interface Artist {
+  id: string;
+  name: string;
 }
 
-interface GalleryData extends GalleryFormData {
-  id: number;
-  img_url: string; // Assuming 'img_url' is the column name
-}
-
-interface ArtistOption {
-    id: number;
-    name: string;
-}
-
-const EditGalleryItemForm: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const itemId = id ? parseInt(id) : null;
+export default function EditArtworkForm() {
   const navigate = useNavigate();
+  const { id: artworkId } = useParams<{ id: string }>();
 
-  const [artistOptions, setArtistOptions] = useState<ArtistOption[]>([]);
-  const [initialData, setInitialData] = useState<GalleryData | null>(null);
-  const [formData, setFormData] = useState<GalleryFormData | null>(null);
+  const [title, setTitle] = useState("");
+  const [onSale, setOnSale] = useState(false);
+  const [price, setPrice] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
-
-  const [loading, setLoading] = useState(true);
+  const [currentImgSrc, setCurrentImgSrc] = useState<string | null>(null);
+  const [artistId, setArtistId] = useState<string | null>(null);
+  const [artistName, setArtistName] = useState("");
+  const [search, setSearch] = useState("");
+  const [artists, setArtists] = useState<Artist[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // 1. Fetch Artists and Gallery Item Data
   useEffect(() => {
-    if (itemId === null || isNaN(itemId)) {
-      setError("Invalid Gallery Item ID provided.");
-      setLoading(false);
-      return;
-    }
-
-    const fetchData = async () => {
+    const fetchArtwork = async () => {
+      if (!artworkId) return;
       setLoading(true);
-      setError(null);
-      try {
-        // Fetch Artists for the dropdown
-        const { data: artistsData } = await supabase
-          .from("artist")
-          .select('id, name')
-          .order("name", { ascending: true });
-        
-        setArtistOptions(artistsData as ArtistOption[] || []);
-        
-        // Fetch Gallery Item
-        const { data: itemData, error: fetchError } = await supabase
-          .from("gallery")
-          .select('*')
-          .eq("id", itemId)
-          .single();
 
-        if (fetchError || !itemData) {
-          throw new Error(fetchError?.message || `Gallery item with ID ${itemId} not found.`);
-        }
+      const { data, error } = await supabase
+        .from("artworks")
+        .select(`
+          id,
+          title,
+          on_sale,
+          price,
+          img_src,
+          artist!inner(id, name)
+        `)
+        .eq("id", artworkId)
+        .single();
 
-        const fetchedItem = itemData as GalleryData;
-        
-        const formFields: GalleryFormData = {
-          title: fetchedItem.title || "",
-          artist_id: fetchedItem.artist_id || null,
-          description: fetchedItem.description || "",
-        };
-
-        setInitialData(fetchedItem);
-        setFormData(formFields);
-        setExistingImageUrl(fetchedItem.img_url);
-
-      } catch (err: any) {
-        console.error("Fetch Error:", err);
-        setError(`Failed to load gallery item: ${err.message}`);
-      } finally {
+      if (error) {
+        toast.error("Failed to load artwork: " + error.message);
         setLoading(false);
+        return;
       }
-    };
-    fetchData();
-  }, [itemId]);
 
-  // Clean up image preview URL
+      if (data) {
+        setTitle(data.title);
+        setOnSale(data.on_sale);
+        setPrice(data.price ? data.price.toString() : "");
+        setCurrentImgSrc(data.img_src);
+
+        if (data.artist) {
+          const artistData = Array.isArray(data.artist)
+            ? data.artist[0]
+            : data.artist;
+          setArtistId(artistData.id);
+          setArtistName(artistData.name);
+          setSearch(artistData.name);
+        }
+      }
+
+      setLoading(false);
+    };
+
+    fetchArtwork();
+  }, [artworkId]);
+
+  useEffect(() => {
+    const fetchArtists = async () => {
+      if (!search || search === artistName) return setArtists([]);
+
+      const { data, error } = await supabase
+        .from("artist")
+        .select("id, name")
+        .ilike("name", `%${search}%`)
+        .limit(10);
+
+      if (!error && data) setArtists(data);
+    };
+
+    fetchArtists();
+  }, [search, artistName]);
+
   useEffect(() => {
     return () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
-      }
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
     };
   }, [imagePreviewUrl]);
 
-  // 2. Handlers
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    if (!formData) return;
-    setFormData({ ...formData, [name]: value });
-  };
-  
-  const handleSelectChange = (value: string) => {
-    if (!formData) return;
-    const artistId = value ? parseInt(value) : null;
-    setFormData({ ...formData, artist_id: artistId });
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-    
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
       setImagePreviewUrl(URL.createObjectURL(selectedFile));
-      setExistingImageUrl(null);
     } else {
       setFile(null);
       setImagePreviewUrl(null);
-      setExistingImageUrl(initialData?.img_url || null);
     }
   };
 
-  const handleRemoveExistingImage = () => {
-      setExistingImageUrl(null);
-      setFile(null);
-      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-      setImagePreviewUrl(null);
-      toast.success("Image marked for removal upon save. The gallery item will remain, but without an image.");
-  };
-
-  // 3. Supabase Upload Logic
-  const uploadImage = async (fileToUpload: File): Promise<string | null> => {
+  const uploadFile = async (): Promise<string | null> => {
+    if (!file) return null;
     setUploading(true);
-    const fileExtension = fileToUpload.name.split('.').pop();
-    const filePath = `gallery/item_${itemId}-${Date.now()}.${fileExtension}`;
 
+    const fileName = `gallery/${Date.now()}-${file.name}`;
     const { error: uploadError } = await supabase.storage
       .from("rise")
-      .upload(filePath, fileToUpload, {
-        cacheControl: '3600',
-        upsert: false
-      });
+      .upload(fileName, file);
 
     if (uploadError) {
-      toast.error(`Image upload failed: ${uploadError.message}`);
+      toast.error(uploadError.message);
       setUploading(false);
       return null;
     }
-    const { data: { publicUrl } } = supabase.storage.from("rise").getPublicUrl(filePath);
+
+    const { data } = supabase.storage.from("rise").getPublicUrl(fileName);
     setUploading(false);
-    return publicUrl;
+    return data.publicUrl;
   };
 
-  // 4. Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData || !initialData || itemId === null) return;
-    
-    setLoading(true);
+    if (!artworkId) return;
+    if (!artistId) {
+      toast.error("Please select an artist.");
+      return;
+    }
 
-    let finalImageUrl = existingImageUrl;
-    
-    try {
-        if (file) {
-            finalImageUrl = await uploadImage(file);
-            if (!finalImageUrl) {
-                setLoading(false);
-                return;
-            }
-        }
-        
-        const galleryItemDataToUpdate = {
-            ...formData,
-            // Convert null to 0 or leave as null based on DB schema. Using null for foreign keys is safer.
-            artist_id: formData.artist_id, 
-            img_url: finalImageUrl || "",
-        };
+    let imgSrc = currentImgSrc;
+    if (file) {
+      const uploadedUrl = await uploadFile();
+      if (!uploadedUrl) return;
+      imgSrc = uploadedUrl;
+    }
 
-        const { error } = await supabase
-            .from("gallery")
-            .update(galleryItemDataToUpdate)
-            .eq('id', itemId);
+    const updateData = {
+      title,
+      on_sale: onSale,
+      price: onSale ? parseFloat(price) : null,
+      img_src: imgSrc,
+      artist: artistId,
+    };
 
-        if (error) throw error;
+    const { error } = await supabase
+      .from("artworks")
+      .update(updateData)
+      .eq("id", artworkId);
 
-        toast.success("Gallery item updated successfully!");
-        
-        // Refresh state and navigate away (optional)
-        setInitialData({ ...initialData, ...galleryItemDataToUpdate });
-        setExistingImageUrl(galleryItemDataToUpdate.img_url);
-        setFile(null);
-        if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-        setImagePreviewUrl(null);
-        
-        navigate("/admin/gallery");
-
-    } catch (err: any) {
-        console.error("Supabase Update Error:", err);
-        toast.error(`Failed to update gallery item: ${err.message}`);
-    } finally {
-        setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Artwork updated successfully!");
+      setFile(null);
+      setImagePreviewUrl(null);
+      setCurrentImgSrc(imgSrc);
+      setTimeout(() => navigate("/gallery"), 1500);
     }
   };
 
-  // 5. Render Logic
-  if (loading || !formData) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mr-2" />
-        <p className="text-lg text-gray-700">Loading gallery data...</p>
+      <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-md">
+        <p className="text-center text-lg font-medium">Loading artwork data...</p>
       </div>
     );
   }
-  
-  if (error) {
-      return (
-          <div className="p-8 text-center text-red-600 bg-red-50 rounded-lg max-w-3xl mx-auto my-10">
-              <h2 className="text-xl font-bold">Error Loading Gallery Item</h2>
-              <p>{error}</p>
-          </div>
-      );
-  }
-
-  const isFormValid = formData.title.trim();
-  const isDisabled = loading || uploading || !isFormValid;
 
   return (
-    <div>
-      <AdminHeader/>
-      <Toaster position="top-center" />
-      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-2xl flex flex-col gap-6 my-10">
-        <h1 className="text-3xl font-extrabold text-center text-gray-900 border-b pb-4 mb-4">
-          Edit Gallery Item: {initialData?.title}
-        </h1>
+    <>
+      <AdminHeader />
+      <Toaster position="top-right" />
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-md flex flex-col gap-6"
+      >
+        <h2 className="text-2xl font-bold">Edit Artwork</h2>
 
         {/* Title */}
         <div>
-          <Label htmlFor="title">Title *</Label>
-          <Input name="title" id="title" value={formData.title} onChange={handleChange} placeholder="Artwork Title" required />
-        </div>
-        
-        {/* Artist Selection */}
-        <div>
-            <Label htmlFor="artist_id">Artist</Label>
-            <Select 
-                name="artist_id" 
-                value={formData.artist_id?.toString() || ""} 
-                onValueChange={handleSelectChange}
-                disabled={artistOptions.length === 0}
-            >
-                <SelectTrigger>
-                    <SelectValue placeholder="Select an Artist (Optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="">-- None --</SelectItem>
-                    {artistOptions.map((artist) => (
-                        <SelectItem key={artist.id} value={artist.id.toString()}>
-                            {artist.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-            {artistOptions.length === 0 && <p className="text-sm text-red-500 mt-1">No artists available. Add artists first!</p>}
-        </div>
-
-        {/* Description */}
-        <div>
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            name="description"
-            id="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows={3}
-            placeholder="A brief description of the artwork."
-          />
-        </div>
-
-        {/* Image Upload Field */}
-        <div className="border p-4 rounded-lg bg-gray-50">
-          <Label htmlFor="image_file" className="text-lg font-semibold mb-2 block">Artwork Image</Label>
-          
-          {(existingImageUrl && !file) && (
-              <div className="mt-4 mb-4 border rounded-md overflow-hidden shadow-sm max-w-xs relative group">
-                  <img
-                      src={existingImageUrl}
-                      alt="Current Artwork"
-                      className="w-full h-48 object-cover"
-                  />
-                  <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={handleRemoveExistingImage}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
-                  >
-                      <Trash2 className="h-4 w-4" /> Remove
-                  </Button>
-                  <p className="text-xs text-gray-500 p-2">Current Image</p>
-              </div>
-          )}
-          
+          <Label htmlFor="title">Title</Label>
           <Input
-            type="file"
-            name="image_file"
-            id="image_file"
-            accept="image/*"
-            onChange={handleFileChange}
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Artwork title"
+            required
           />
-          <p className="text-sm text-gray-500 mt-1">Upload a new image to replace the current one.</p>
+        </div>
 
-          {(imagePreviewUrl && file) && (
-            <div className="mt-4 border rounded-md overflow-hidden shadow-sm max-w-xs">
+        {/* Upload image */}
+        <div>
+          <Label htmlFor="file">Upload New Image (Optional)</Label>
+          <Input id="file" type="file" accept="image/*" onChange={handleFileChange} />
+          {uploading && <p className="text-gray-600 mt-1">Processing...</p>}
+          {(imagePreviewUrl || currentImgSrc) && (
+            <div className="mt-4 border rounded-md overflow-hidden">
               <img
-                src={imagePreviewUrl}
-                alt="New Artwork Preview"
+                src={imagePreviewUrl || currentImgSrc || ""}
+                alt="Artwork"
                 className="w-full h-48 object-cover"
               />
-              <p className="text-xs text-blue-500 p-2">New Image Preview (Will be uploaded on save)</p>
+              <p className="p-2 text-sm text-gray-500">
+                {imagePreviewUrl ? "New image preview" : "Current saved image"}
+              </p>
             </div>
           )}
-          {uploading && <p className="text-blue-500 mt-2">Uploading image...</p>}
         </div>
 
-        <Button type="submit" className="mt-6 py-3 text-lg" disabled={isDisabled}>
-          {loading ? "Saving Changes..." : uploading ? "Uploading Image..." : "Save Changes"}
+        {/* On Sale */}
+        <div className="flex items-center gap-4">
+          <input
+            type="checkbox"
+            id="onSale"
+            checked={onSale}
+            onChange={(e) => setOnSale(e.target.checked)}
+            className="w-4 h-4"
+          />
+          <Label htmlFor="onSale">On Sale</Label>
+        </div>
+
+        {/* Price */}
+        {onSale && (
+          <div>
+            <Label htmlFor="price">Price</Label>
+            <Input
+              id="price"
+              type="text"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="200 Br"
+              required
+            />
+          </div>
+        )}
+
+        {/* Artist */}
+        <div>
+          <Label>Artist</Label>
+          <Command>
+            <CommandInput
+              placeholder="Search artist..."
+              value={search}
+              onValueChange={setSearch}
+            />
+            <CommandList>
+              <CommandEmpty>No artists found.</CommandEmpty>
+              {artists.map((artist) => (
+                <CommandItem
+                  key={artist.id}
+                  onSelect={() => {
+                    setArtistId(artist.id);
+                    setArtistName(artist.name);
+                    setSearch(artist.name);
+                    setArtists([]);
+                  }}
+                >
+                  {artist.name}
+                </CommandItem>
+              ))}
+            </CommandList>
+          </Command>
+          {artistName && (
+            <p className="mt-1 text-gray-700">
+              Selected artist: <strong>{artistName}</strong>
+            </p>
+          )}
+        </div>
+
+        <Button type="submit" disabled={uploading}>
+          {uploading ? "Processing..." : "Update Artwork"}
         </Button>
       </form>
-    </div>
+    </>
   );
-};
-
-export default EditGalleryItemForm;
+}

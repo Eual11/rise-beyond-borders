@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Trash2, Copy, Link, Mail, Instagram, Twitter, Facebook, Youtube, Linkedin } from "lucide-react";
+import { Trash2, Copy, Link, Mail, Instagram, Twitter, Facebook, Youtube, Linkedin, Edit2 } from "lucide-react";
 
 const copyToClipboard = async (text: string, label: string) => {
   try {
@@ -12,6 +12,7 @@ const copyToClipboard = async (text: string, label: string) => {
 };
 
 export interface ArtCardProps {
+  id:string,
   title: string;
   artist: string;
   onSale: boolean;
@@ -19,6 +20,7 @@ export interface ArtCardProps {
   imageSrc: string;
   artistUrl?: string;
   onDelete?: () => void;
+  onEdit?: (id:string) => void;
   artistWebsite?: string;
   artistEmail?: string;
   artistInstagram?: string;
@@ -29,6 +31,7 @@ export interface ArtCardProps {
 }
 
 const ArtCard: React.FC<ArtCardProps> = ({
+  id,
   title,
   artist,
   onSale,
@@ -36,6 +39,7 @@ const ArtCard: React.FC<ArtCardProps> = ({
   imageSrc,
   artistUrl,
   onDelete,
+  onEdit,
   artistWebsite,
   artistEmail,
   artistInstagram,
@@ -55,11 +59,11 @@ const ArtCard: React.FC<ArtCardProps> = ({
 
   const renderContactItem = (value: string | undefined, Icon: React.ElementType, name: string, isLink: boolean = false) => {
     if (!value) return null;
-    
+
     const displayValue = name === "Email" ? value : value.replace(/^(https?:\/\/|mailto:)/i, '');
     const copyValue = isLink && !value.startsWith('http') ? `https://${value}` : value;
     const linkHref = isLink ? (value.startsWith('http') ? value : `https://${value}`) : (name === "Email" ? `mailto:${value}` : undefined);
-    
+
     return (
       <div className="flex items-center justify-between p-3 border-b last:border-b-0">
         <div className="flex items-center gap-4 min-w-0">
@@ -120,9 +124,9 @@ const ArtCard: React.FC<ArtCardProps> = ({
             ) : (
               <span className="bg-gray-200 max-w-[100px] text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">
                 {
-                 
-//                Not for Sale
-              }
+
+                  //                Not for Sale
+                }
               </span>
             )}
 
@@ -130,25 +134,35 @@ const ArtCard: React.FC<ArtCardProps> = ({
               {onDelete && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                  className="p-2 rounded-full text-red-600 hover:bg-red-50 transition-colors"
+                  className="p-2 cursor-pointer rounded-full text-red-600 hover:bg-red-50 transition-colors"
                   aria-label="Delete artwork"
                 >
                   <Trash2 className="h-5 w-5" />
                 </button>
-              )}
+              )} {
+                onEdit && (
+
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onEdit(id); }}
+                    className="p-2 cursor-pointer  rounded-full text-green-600 hover:bg-green-50 transition-colors"
+                    aria-label="Delete artwork"
+                  >
+                    <Edit2 className="h-5 w-5" />
+                  </button>)
+              }
               {
-              
-(artistWebsite || artistEmail || artistInstagram || artistTwitter || artistLinkedin || artistFacebook || artistYoutube) &&
 
-           <button
-                onClick={openContactModal}
-                className="bg-gray-800 text-white text-xs font-semibold px-3 py-1 rounded-full hover:bg-gray-700 transition-colors"
-              >
-                Show Artist
-              </button>
+                (artistWebsite || artistEmail || artistInstagram || artistTwitter || artistLinkedin || artistFacebook || artistYoutube) &&
 
- }
-   
+                <button
+                  onClick={openContactModal}
+                  className="bg-gray-800 cursor-pointer text-white text-xs font-semibold px-3 py-1 rounded-full hover:bg-gray-700 transition-colors"
+                >
+                  Show Artist
+                </button>
+
+              }
+
             </div>
           </div>
         </div>
@@ -199,12 +213,12 @@ const ArtCard: React.FC<ArtCardProps> = ({
                 &times;
               </button>
             </div>
-            
+
             <div className="p-4 space-y-2">
               <p className="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">
                 Use the copy button to get the artist's credentials.
               </p>
-              
+
               <div className="border rounded-lg divide-y divide-gray-100">
                 {renderContactItem(artistWebsite, Link, "Website", true)}
                 {renderContactItem(artistEmail, Mail, "Email")}
@@ -213,22 +227,22 @@ const ArtCard: React.FC<ArtCardProps> = ({
                 {renderContactItem(artistLinkedin, Linkedin, "LinkedIn", true)}
                 {renderContactItem(artistFacebook, Facebook, "Facebook", true)}
                 {renderContactItem(artistYoutube, Youtube, "YouTube", true)}
-                
+
                 {!(artistWebsite || artistEmail || artistInstagram || artistTwitter || artistLinkedin || artistFacebook || artistYoutube) && (
-                    <div className="p-4 text-center text-gray-500">
-                        No public contact credentials provided for this artist.
-                    </div>
+                  <div className="p-4 text-center text-gray-500">
+                    No public contact credentials provided for this artist.
+                  </div>
                 )}
               </div>
             </div>
-            
+
             <div className="p-4 border-t text-right">
-                <button
-                    onClick={closeContactModal}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                    Done
-                </button>
+              <button
+                onClick={closeContactModal}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>

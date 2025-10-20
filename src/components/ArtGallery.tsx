@@ -5,6 +5,7 @@ import ArtCard, { ArtCardProps } from "./ArtGalleryCard";
 import Footer from "./Footer";
 import Header from "./Header";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner"; 
+
 interface GalleryArtCardProps extends ArtCardProps {
   id: string;
   artistWebsite?: string;
@@ -34,6 +37,8 @@ const ArtGallery: React.FC = () => {
   const openDeleteDialog = (artwork: GalleryArtCardProps) => {
     setArtworkToDelete(artwork);
   };
+
+  const navigate = useNavigate();
 
   const closeDeleteDialog = () => {
     setArtworkToDelete(null);
@@ -67,9 +72,9 @@ const ArtGallery: React.FC = () => {
         `
       );
 
-
       if (error) {
         console.error("Error fetching artworks:", error.message);
+        toast.error(`Error fetching artworks: ${error.message}`);
         setLoading(false);
         return;
       }
@@ -91,7 +96,6 @@ const ArtGallery: React.FC = () => {
           artistFacebook: item.artist?.facebook,
           artistYoutube: item.artist?.youtube,
         }));
-
 
         setArtPieces(formatted);
       }
@@ -127,10 +131,10 @@ const ArtGallery: React.FC = () => {
 
     if (error) {
       console.error("Error deleting artwork:", error.message);
-      alert(`Failed to delete artwork: ${error.message}`);
+      toast.error(`Failed to delete artwork: ${error.message}`);
     } else {
       setArtPieces((prev) => prev.filter((piece) => piece.id !== artworkId));
-      alert("Artwork deleted successfully!");
+      toast.success("Artwork deleted successfully!");
     }
     setLoading(false);
   };
@@ -195,6 +199,9 @@ const ArtGallery: React.FC = () => {
                   {...piece}
                   onDelete={
                     session ? () => openDeleteDialog(piece) : undefined
+                  }
+                  onEdit={
+                    session ? (id: number) => navigate(`/admin/gallery/edit/${id}`) : undefined
                   }
                   artistWebsite={piece.artistWebsite}
                   artistEmail={piece.artistEmail}
